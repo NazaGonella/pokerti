@@ -1,4 +1,4 @@
-package Poker;
+package Poker2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,14 +8,32 @@ public class Game {
 	private List<Player> players = new ArrayList<>();
 	
 	private Player dealer;
-	private Player sB;
-	private Player bB;
+	private Player sBlinder;
+	private Player bBlinder;
 	
 	private Player playerToPlay;
 	
 	private int currentRound = 0;
 	
-	private int pot = 0;
+	private int pot;
+	private int smallBlind;
+	private int bigBlind;
+	
+	private Deck deck = Deck.completeDeck();
+	
+	/**
+	 * 
+	 * @param smallBlind - Small blind to be played with
+	 * @param ratio - Ratio between small and big blinds. For example, if ratio = {2, 1}, it means 2:1, 
+	 *          so the big blind will be double the small blind.
+	 */
+	public Game(int smallBlind, int[] ratio) {
+		if (ratio.length > 2) {
+		    throw new IllegalArgumentException("Ratio must have two numbers");
+		}
+		this.smallBlind = smallBlind * ratio[1];
+		this.bigBlind = smallBlind * ratio[0];
+	}
 
 	public Game addPlayer(Player player) {
 		players.add(player);
@@ -28,12 +46,14 @@ public class Game {
 		}
 		
 		assignRoles(currentRound);
+		
+		deck.sort();
 	}
 
 	private void assignRoles(int dealer) {
 		this.dealer = players.get(dealer);
-		this.sB = players.get((dealer + 1) % players.size());
-		this.bB = players.get((dealer + 2) % players.size());
+		this.sBlinder = players.get((dealer + 1) % players.size());
+		this.bBlinder = players.get((dealer + 2) % players.size());
 		this.playerToPlay = players.get((dealer + 3) % players.size());
 	}
 	
@@ -41,12 +61,12 @@ public class Game {
 		return this.dealer;
 	}
 	
-	public Player smallBlind() {
-		return this.sB;
+	public Player smallBlinder() {
+		return this.sBlinder;
 	}
 	
-	public Player bigBlind() {
-		return this.bB;
+	public Player bigBlinder() {
+		return this.bBlinder;
 	}
 	
 	public Player playerToPlay() {
@@ -55,6 +75,20 @@ public class Game {
 
 	public int pot() {
 		return this.pot;
+	}
+	
+	public int smallBlind() {
+		return this.smallBlind;
+	}
+	
+	public int bigBlind() {
+		return this.bigBlind;
+	}
+
+	public void dealCards() {
+		for (Player player : players) {
+			player.receiveCardFrom(deck).receiveCardFrom(deck);
+        }
 	}
 
 }
